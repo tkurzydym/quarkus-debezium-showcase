@@ -58,3 +58,32 @@ https://docs.confluent.io/platform/current/connect/references/restapi.html
 https://hub.docker.com/r/debezium/connect
 https://github.com/debezium/debezium-examples/tree/master/outbox
 https://github.com/debezium/debezium-examples/blob/master/outbox/debezium-strimzi/Dockerfile
+
+
+Changes
+---
+
+Build the docker image "connect-tracing" with 
+
+`cd docker/debezium-connect-tracing && docker build -t connect-tracing . && cd .. && cd ..`
+
+After starting the docker-compose-extension.yml and your apicurio is running under 
+http://localhost:8181 execute `cd todo-service-extension && mvn clean package -Dgit=true`
+
+The Schema should be uploaded to apicurio.
+Afterwards you can create the connector and start the Application and make a todo normally.
+
+You should end up with the NPE in the debezium connect.
+
+If changing to this configuration in the docker compose:
+
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER_SERIALIZER_TYPE: json
+      VALUE_CONVERTER_AVRO_APICURIO_REGISTRY_URL: http://apicurio:8181
+      VALUE_CONVERTER_DATA_SERIALIZER_TYPE: json
+
+the event is written in avro binary format to the kafka event.
+
+What I don't understand is, that I can't detect any call from debezium to apicurio. 
+(but maybe that even isn't necessary at all)

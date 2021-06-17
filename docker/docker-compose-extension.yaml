@@ -48,34 +48,28 @@ services:
   # Install debezium-connect
   debezium-connect:
     container_name: debezium-connect
-    image: unexist/connect
+    image: connect-tracing
     hostname: debezium-connect
     ports:
       - '8083:8083'
     environment:
-      - KAFKA_LOG4J_OPTS=-Dlog4j.configuration=file:/opt/kafka/config/connect-log4j.properties
-      - KAFKA_CONNECT_BOOTSTRAP_SERVERS=kafka:29092
-      - |
-        KAFKA_CONNECT_CONFIGURATION=
-        key.converter=org.apache.kafka.connect.json.JsonConverter
-        value.converter=org.apache.kafka.connect.json.JsonConverter
-        key.converter.schemas.enable=false
-        value.converter.schemas.enable=false
-        group.id=connect
-        offset.storage.topic=connect-offsets
-        offset.storage.replication.factor=1
-        config.storage.topic=connect-configs
-        config.storage.replication.factor=1
-        status.storage.topic=connect-status
-        status.storage.replication.factor=1
-        consumer.interceptor.classes=io.opentracing.contrib.kafka.TracingConsumerInterceptor
-        producer.interceptor.classes=io.opentracing.contrib.kafka.TracingProducerInterceptor
-      - JAEGER_SERVICE_NAME=kafka-connect
-      - JAEGER_AGENT_HOST=jaeger
-      - JAEGER_SAMPLER_TYPE=const
-      - JAEGER_SAMPLER_PARAM=1
-      - STRIMZI_TRACING=jaeger
-    command: /opt/kafka/kafka_connect_run.sh
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_connect_config
+      OFFSET_STORAGE_TOPIC: debezium_connect_offsets
+      STATUS_STORAGE_TOPIC: debezium_connect_status
+      BOOTSTRAP_SERVERS: kafka:29092
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: io.debezium.converters.CloudEventsConverter
+      VALUE_CONVERTER_SERIALIZER_TYPE: json
+      VALUE_CONVERTER_AVRO_APICURIO_REGISTRY_URL: http://apicurio:8181
+      VALUE_CONVERTER_DATA_SERIALIZER_TYPE: avro
+      CONSUMER_INTERCEPTOR_CLASSES: io.opentracing.contrib.kafka.TracingConsumerInterceptor
+      PRODUCER_INTERCEPTOR_CLASSES: io.opentracing.contrib.kafka.TracingProducerInterceptor
+      JAEGER_SERVICE_NAME: kafka-connect
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
+      STRIMZI_TRACING: jaeger
     depends_on:
       - kafka
       - postgres
@@ -88,3 +82,12 @@ services:
     command: bash -c "kafka-topics --bootstrap-server kafka:29092 --create --topic todo_created --partitions 1 --replication-factor 1 --if-not-exists"
     depends_on:
       - kafka
+  apicurio:
+    image: apicurio/apicurio-registry-sql:2.0.0.Final
+    ports:
+      - 8181:8181
+    environment:
+      QUARKUS_HTTP_PORT: 8181
+      REGISTRY_DATASOURCE_URL: jdbc:postgresql://postgres:5432/showcase
+      REGISTRY_DATASOURCE_USERNAME: unexist
+      REGISTRY_DATASOURCE_PASSWORD: password

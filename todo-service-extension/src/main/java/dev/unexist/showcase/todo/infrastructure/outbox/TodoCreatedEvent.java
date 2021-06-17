@@ -14,23 +14,27 @@ package dev.unexist.showcase.todo.infrastructure.outbox;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.Todo;
+import dev.unexist.showcase.todo.generated.avro.Todov1;
 import io.debezium.outbox.quarkus.ExportedEvent;
 
 import java.time.Instant;
 
-public class TodoCreatedEvent implements ExportedEvent<String, JsonNode> {
+public class TodoCreatedEvent implements ExportedEvent<String, Todov1> {
     private static final String TYPE = "Todo";
     private static final String EVENT_TYPE = "todo_created";
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final long todoId;
-    private final JsonNode jsonNode;
+    private final Todov1 todov1;
     private final Instant timestamp;
 
     public TodoCreatedEvent(Instant createdAt, Todo todo) {
         this.todoId = todo.getId();
         this.timestamp = createdAt;
-        this.jsonNode = MAPPER.valueToTree(todo);
+        this.todov1 = Todov1.newBuilder()
+                .setDescription(todo.getDescription())
+                .setTitle(todo.getTitle())
+                .build();
     }
 
     @Override
@@ -44,8 +48,8 @@ public class TodoCreatedEvent implements ExportedEvent<String, JsonNode> {
     }
 
     @Override
-    public JsonNode getPayload() {
-        return jsonNode;
+    public Todov1 getPayload() {
+        return todov1;
     }
 
     @Override

@@ -1,0 +1,15 @@
+{
+  "namespace": "dev.unexist.showcase.todo.generated.avro",
+  "type": "record",
+  "name": "Todov1",
+  "fields": [
+    {
+      "name": "title",
+      "type": "string"
+    },
+    {
+      "name": "description",
+      "type": "string"
+    }
+  ]
+}

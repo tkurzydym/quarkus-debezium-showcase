@@ -21,6 +21,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.eclipse.microprofile.opentracing.Traced;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -43,6 +44,7 @@ public class TodoResource {
     @Inject
     TodoService todoService;
 
+    @Traced
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -65,6 +67,7 @@ public class TodoResource {
         return response.build();
     }
 
+    @Traced
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get all todos")

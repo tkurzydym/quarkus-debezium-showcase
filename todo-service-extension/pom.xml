@@ -15,6 +15,9 @@
 
     <properties>
         <debezium-quarkus-outbox.version>1.6.0.Beta1</debezium-quarkus-outbox.version>
+        <avro-maven-plugin.version>1.10.2</avro-maven-plugin.version>
+        <apicurio-registry-utils-serde.version>1.3.2.Final</apicurio-registry-utils-serde.version>
+        <apicurio.version>2.0.1.Final</apicurio.version>
     </properties>
 
     <dependencies>
@@ -24,6 +27,11 @@
         </dependency>
 
         <!-- Debezium -->
+        <dependency>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-core</artifactId>
+            <version>${debezium-quarkus-outbox.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-quarkus-outbox</artifactId>
@@ -43,5 +51,99 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-devservices-postgresql</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-api</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-json</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-avro</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-utils-converter</artifactId>
+            <version>2.0.0.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.apicurio</groupId>
+            <artifactId>apicurio-registry-serdes-avro-serde</artifactId>
+            <version>${apicurio.version}</version>
+        </dependency>
     </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+                <version>${avro-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>schema</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>src/main/avro</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+                            <stringType>String</stringType>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.apicurio</groupId>
+                <artifactId>apicurio-registry-maven-plugin</artifactId>
+                <version>${apicurio.version}</version>
+                <executions>
+                    <execution>
+                        <id>1</id>
+                        <!-- Enable to automatically download schema-->
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>register</goal>
+                        </goals>
+                        <configuration>
+                            <registryUrl>http://localhost:8181</registryUrl>
+                            <artifacts>
+                                <artifact>
+                                    <groupId>TodoGroup</groupId>
+                                    <artifactId>Todov1</artifactId>
+                                    <file>src/main/avro/todov1.avsc</file>
+                                    <type>AVRO</type>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>2</id>
+                        <!-- Enable to automatically download schema-->
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>download</goal>
+                        </goals>
+                        <configuration>
+                            <registryUrl>http://localhost:8181</registryUrl>
+                            <artifacts>
+                                <artifact>
+                                    <groupId>TodoGroup</groupId>
+                                    <artifactId>Todov1</artifactId>
+                                    <file>src/main/avro/todov1.avsc</file>
+                                    <overwrite>true</overwrite>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
