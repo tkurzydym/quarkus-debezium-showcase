@@ -48,7 +48,7 @@ services:
   # Install debezium-connect
   debezium-connect:
     container_name: debezium-connect
-    image: unexist/connect
+    image: connect-unexist
     hostname: debezium-connect
     ports:
       - '8083:8083'
@@ -58,9 +58,11 @@ services:
       - |
         KAFKA_CONNECT_CONFIGURATION=
         key.converter=org.apache.kafka.connect.json.JsonConverter
-        value.converter=org.apache.kafka.connect.json.JsonConverter
+        value.converter=io.debezium.converters.CloudEventsConverter
+        value.converter.serializer.type=json
+        value.converter.json.schemas.enable=true
         key.converter.schemas.enable=false
-        value.converter.schemas.enable=false
+        value.converter.schemas.enable=true
         group.id=connect
         offset.storage.topic=connect-offsets
         offset.storage.replication.factor=1
